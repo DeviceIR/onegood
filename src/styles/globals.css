@@ -1,0 +1,108 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: #f4f7f5;
+  --color-foreground: #15201c;
+  --color-accent: #0c7a62;
+  --color-accent-foreground: #f4fbf8;
+  --color-gold: #b8974a;
+  --color-muted: #5a6b63;
+  --color-card: #ffffff;
+  --color-border: #d7e2dc;
+  --color-hero: #e8f2ee;
+  --color-surface: #ffffff;
+  --color-surface-soft: #eef4f1;
+  --font-sans: var(--font-vazirmatn);
+}
+
+:root {
+  --scroll-mix: 0%;
+  --page-bg: color-mix(
+    in srgb,
+    var(--color-hero) calc(100% - var(--scroll-mix)),
+    var(--color-surface) var(--scroll-mix)
+  );
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply text-foreground antialiased;
+    background-color: var(--page-bg);
+    font-family: var(--font-vazirmatn), system-ui, sans-serif;
+    transition: background-color 120ms linear;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-accent;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+
+    body {
+      transition: none;
+    }
+  }
+}
+
+@layer utilities {
+  /* Soft band that fades into the page background — no hard section lines */
+  .section-fade-soft {
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      color-mix(in srgb, var(--color-surface-soft) 55%, transparent) 10%,
+      var(--color-surface-soft) 28%,
+      var(--color-surface-soft) 72%,
+      color-mix(in srgb, var(--color-surface-soft) 55%, transparent) 90%,
+      transparent 100%
+    );
+  }
+
+  .section-fade-soft-top {
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      color-mix(in srgb, var(--color-surface-soft) 55%, transparent) 12%,
+      var(--color-surface-soft) 32%,
+      var(--color-surface-soft) 100%
+    );
+  }
+
+  .section-fade-soft-bottom {
+    background: linear-gradient(
+      180deg,
+      var(--color-surface-soft) 0%,
+      var(--color-surface-soft) 68%,
+      color-mix(in srgb, var(--color-surface-soft) 55%, transparent) 88%,
+      transparent 100%
+    );
+  }
+}

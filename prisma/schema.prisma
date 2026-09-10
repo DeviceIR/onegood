@@ -1,0 +1,517 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PaymentGatewayKind {
+  ZARINPAL
+  MOCK
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  CANCELLED
+  REFUNDED
+  EXPIRED
+}
+
+enum DonationPublicStatus {
+  PENDING_REVIEW
+  APPROVED
+  HIDDEN
+}
+
+enum LedgerType {
+  DONATION
+  EXPENSE
+  REFUND
+  TRANSFER
+  OTHER
+}
+
+enum LedgerDirection {
+  IN
+  OUT
+}
+
+enum CampaignStatus {
+  DRAFT
+  PUBLISHED
+  COMPLETED
+  ARCHIVED
+}
+
+enum ExpenseCategory {
+  SUPPLIES
+  TRANSPORT
+  CLOTHING
+  FOOD
+  GATEWAY_FEE
+  OTHER
+}
+
+enum ExpenseStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum MediaKind {
+  IMAGE
+  VIDEO
+}
+
+enum MediaVisibility {
+  PUBLIC
+  INTERNAL
+}
+
+enum AdminRole {
+  OWNER
+  ADMIN
+  CAMPAIGN_MANAGER
+  VIEWER
+}
+
+enum TestimonialRole {
+  DONOR
+  VOLUNTEER
+  TEACHER
+  COMMUNITY
+  GUARDIAN
+}
+
+enum TestimonialStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ConsentSubjectType {
+  BENEFICIARY
+  GUARDIAN
+  TESTIMONIAL_AUTHOR
+}
+
+enum ConsentScope {
+  PHOTO
+  VIDEO
+  STORY
+  NAME
+}
+
+enum AgeRange {
+  UNDER_7
+  AGE_7_10
+  AGE_11_14
+  AGE_15_17
+  ADULT
+}
+
+enum ActorType {
+  ADMIN
+  SYSTEM
+  GATEWAY
+}
+
+enum CampaignUpdateStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model Admin {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  name           String
+  passwordHash   String
+  role           AdminRole @default(VIEWER)
+  totpSecretEnc  String?
+  totpEnabled    Boolean   @default(false)
+  isActive       Boolean   @default(true)
+  lastLoginAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  sessions           Session[]
+  auditLogs          AuditLog[]            @relation("AuditActor")
+  ledgerEntries      LedgerEntry[]
+  expenses           Expense[]
+  mediaUploads       Media[]
+  campaignUpdates    CampaignUpdate[]
+  testimonials       Testimonial[]
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  adminId      String
+  expires      DateTime
+  admin        Admin    @relation(fields: [adminId], references: [id], onDelete: Cascade)
+}
+
+model Donor {
+  id         String   @id @default(cuid())
+  phoneHash  String?  @unique
+  phoneEnc   String?
+  emailEnc   String?
+  fullName   String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  donations  Donation[]
+}
+
+model Campaign {
+  id                    String         @id @default(cuid())
+  slug                  String         @unique
+  titleFa               String
+  summaryFa             String
+  storyFa               String
+  coverMediaId          String?
+  coverMedia            Media?         @relation("CampaignCover", fields: [coverMediaId], references: [id])
+  targetAmountToman     BigInt
+  deadline              DateTime?
+  status                CampaignStatus @default(DRAFT)
+  publishedAt           DateTime?
+  completedAt           DateTime?
+  isFeatured            Boolean        @default(false)
+  sortOrder             Int            @default(0)
+  seoTitle              String?
+  seoDescription        String?
+  collectedAmountToman  BigInt         @default(0)
+  donorCount            Int            @default(0)
+  aggregatesUpdatedAt   DateTime?
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+
+  needs         CampaignNeedItem[]
+  updates       CampaignUpdate[]
+  payments      Payment[]
+  donations     Donation[]
+  ledgerEntries LedgerEntry[]
+  expenses      Expense[]
+  impactRecords ImpactRecord[]
+  media         Media[]            @relation("CampaignMedia")
+}
+
+model CampaignNeedItem {
+  id                      String   @id @default(cuid())
+  campaignId              String
+  campaign                Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  titleFa                 String
+  quantity                Int      @default(1)
+  unitPriceEstimateToman  BigInt?
+  note                    String?
+  sortOrder               Int      @default(0)
+}
+
+model CampaignUpdate {
+  id          String                @id @default(cuid())
+  campaignId  String
+  campaign    Campaign              @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  titleFa     String
+  bodyFa      String
+  status      CampaignUpdateStatus  @default(DRAFT)
+  publishedAt DateTime?
+  createdById String?
+  createdBy   Admin?                @relation(fields: [createdById], references: [id])
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+}
+
+model Payment {
+  id               String             @id @default(cuid())
+  campaignId       String
+  campaign         Campaign           @relation(fields: [campaignId], references: [id])
+  gateway          PaymentGatewayKind
+  amountToman      BigInt
+  currency         String             @default("IRT")
+  status           PaymentStatus      @default(PENDING)
+  idempotencyKey   String             @unique
+  gatewayAuthority String?            @unique
+  gatewayRefId     String?            @unique
+  cardPanMasked    String?
+  cardHash         String?
+  feeType          String?
+  feeToman         BigInt?
+  failureCode      String?
+  failureMessage   String?
+  clientIpHash     String?
+  requestedAt      DateTime           @default(now())
+  verifiedAt       DateTime?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  donation     Donation?
+  callbackLogs GatewayCallbackLog[]
+
+  @@index([status, requestedAt])
+  @@index([gatewayAuthority])
+}
+
+model Donation {
+  id               String               @id @default(cuid())
+  paymentId        String               @unique
+  payment          Payment              @relation(fields: [paymentId], references: [id])
+  campaignId       String
+  campaign         Campaign             @relation(fields: [campaignId], references: [id])
+  donorId          String?
+  donor            Donor?               @relation(fields: [donorId], references: [id])
+  amountToman      BigInt
+  donorDisplayName String?
+  message          String?
+  showName         Boolean              @default(false)
+  showAmount       Boolean              @default(false)
+  publicStatus     DonationPublicStatus @default(APPROVED)
+  referenceCode    String               @unique
+  createdAt        DateTime             @default(now())
+  verifiedAt       DateTime?
+
+  ledgerEntries LedgerEntry[]
+}
+
+model LedgerEntry {
+  id               String          @id @default(cuid())
+  campaignId       String?
+  campaign         Campaign?       @relation(fields: [campaignId], references: [id])
+  type             LedgerType
+  direction        LedgerDirection
+  amountToman      BigInt
+  occurredAt       DateTime        @default(now())
+  descriptionFa    String
+  donationId       String?
+  donation         Donation?       @relation(fields: [donationId], references: [id])
+  expenseId        String?
+  expense          Expense?        @relation(fields: [expenseId], references: [id])
+  reversesEntryId  String?         @unique
+  reversesEntry    LedgerEntry?    @relation("LedgerReversal", fields: [reversesEntryId], references: [id])
+  reversedBy       LedgerEntry[]   @relation("LedgerReversal")
+  createdByAdminId String?
+  createdByAdmin   Admin?          @relation(fields: [createdByAdminId], references: [id])
+  createdAt        DateTime        @default(now())
+
+  @@index([campaignId, occurredAt])
+  @@index([type, direction])
+}
+
+model Expense {
+  id               String          @id @default(cuid())
+  campaignId       String?
+  campaign         Campaign?       @relation(fields: [campaignId], references: [id])
+  category         ExpenseCategory
+  amountToman      BigInt
+  vendor           String?
+  occurredAt       DateTime
+  descriptionFa    String
+  status           ExpenseStatus   @default(DRAFT)
+  createdByAdminId String?
+  createdByAdmin   Admin?          @relation(fields: [createdByAdminId], references: [id])
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  receipts      Receipt[]
+  ledgerEntries LedgerEntry[]
+}
+
+model Receipt {
+  id              String  @id @default(cuid())
+  expenseId       String
+  expense         Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  mediaId         String
+  media           Media   @relation("ReceiptOriginal", fields: [mediaId], references: [id])
+  redactedMediaId String?
+  redactedMedia   Media?  @relation("ReceiptRedacted", fields: [redactedMediaId], references: [id])
+  note            String?
+}
+
+model Media {
+  id               String          @id @default(cuid())
+  kind             MediaKind
+  bucket           String
+  storageKey       String
+  mimeType         String
+  sizeBytes        Int
+  width            Int?
+  height           Int?
+  durationSec      Int?
+  blurDataUrl      String?
+  altTextFa        String?
+  checksum         String?
+  visibility       MediaVisibility @default(INTERNAL)
+  depictsBeneficiary Boolean       @default(false)
+  consentId        String?
+  consent          Consent?        @relation(fields: [consentId], references: [id])
+  campaignId       String?
+  campaign         Campaign?       @relation("CampaignMedia", fields: [campaignId], references: [id])
+  uploadedByAdminId String?
+  uploadedByAdmin  Admin?          @relation(fields: [uploadedByAdminId], references: [id])
+  createdAt        DateTime        @default(now())
+
+  variants           MediaVariant[]
+  campaignCovers     Campaign[]     @relation("CampaignCover")
+  receiptOriginals   Receipt[]      @relation("ReceiptOriginal")
+  receiptRedacted    Receipt[]      @relation("ReceiptRedacted")
+  testimonials       Testimonial[]
+  impactRecords      ImpactRecordMedia[]
+  consentEvidence    Consent[]      @relation("ConsentEvidence")
+}
+
+model MediaVariant {
+  id         String @id @default(cuid())
+  mediaId    String
+  media      Media  @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  width      Int
+  format     String
+  storageKey String
+}
+
+model Testimonial {
+  id                String            @id @default(cuid())
+  authorDisplayName String
+  authorRole        TestimonialRole
+  bodyFa            String
+  mediaId           String?
+  media             Media?            @relation(fields: [mediaId], references: [id])
+  consentId         String?
+  consent           Consent?          @relation(fields: [consentId], references: [id])
+  status            TestimonialStatus @default(PENDING)
+  publishedAt       DateTime?
+  createdByAdminId  String?
+  createdByAdmin    Admin?            @relation(fields: [createdByAdminId], references: [id])
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+}
+
+model Beneficiary {
+  id                 String    @id @default(cuid())
+  internalCode       String    @unique
+  pseudonymFa        String
+  gradeLevel         String?
+  ageRange           AgeRange?
+  regionCoarse       String?
+  guardianContactEnc String?
+  notesInternal      String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  impactRecords ImpactRecord[]
+  consents      Consent[]
+}
+
+model Consent {
+  id              String             @id @default(cuid())
+  subjectType     ConsentSubjectType
+  subjectRef      String
+  beneficiaryId   String?
+  beneficiary     Beneficiary?       @relation(fields: [beneficiaryId], references: [id])
+  scopes          ConsentScope[]
+  grantedAt       DateTime           @default(now())
+  expiresAt       DateTime?
+  revokedAt       DateTime?
+  evidenceMediaId String?
+  evidenceMedia   Media?             @relation("ConsentEvidence", fields: [evidenceMediaId], references: [id])
+  note            String?
+  createdAt       DateTime           @default(now())
+
+  media         Media[]
+  testimonials  Testimonial[]
+}
+
+model ImpactRecord {
+  id                   String   @id @default(cuid())
+  campaignId           String
+  campaign             Campaign @relation(fields: [campaignId], references: [id])
+  beneficiaryId        String?
+  beneficiary          Beneficiary? @relation(fields: [beneficiaryId], references: [id])
+  itemsSummaryFa       String
+  deliveredAt          DateTime
+  publicDescriptionFa  String
+  createdAt            DateTime @default(now())
+
+  media ImpactRecordMedia[]
+}
+
+model ImpactRecordMedia {
+  impactRecordId String
+  mediaId        String
+  impactRecord   ImpactRecord @relation(fields: [impactRecordId], references: [id], onDelete: Cascade)
+  media          Media        @relation(fields: [mediaId], references: [id])
+
+  @@id([impactRecordId, mediaId])
+}
+
+model VolunteerApplication {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String
+  email     String?
+  message   String
+  createdAt DateTime @default(now())
+  handled   Boolean  @default(false)
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String?
+  phone     String?
+  message   String
+  createdAt DateTime @default(now())
+  handled   Boolean  @default(false)
+}
+
+model AuditLog {
+  id           String    @id @default(cuid())
+  actorType    ActorType
+  actorAdminId String?
+  actorAdmin   Admin?    @relation("AuditActor", fields: [actorAdminId], references: [id])
+  action       String
+  entityType   String
+  entityId     String?
+  beforeJson   Json?
+  afterJson    Json?
+  ipHash       String?
+  userAgent    String?
+  createdAt    DateTime  @default(now())
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
+model GatewayCallbackLog {
+  id             String   @id @default(cuid())
+  paymentId      String?
+  payment        Payment? @relation(fields: [paymentId], references: [id])
+  authority      String?
+  statusParam    String?
+  rawQuery       Json?
+  verifyResponse Json?
+  createdAt      DateTime @default(now())
+}
+
+model StatsSnapshot {
+  id                   String   @id @default(cuid())
+  totalDonationsToman  BigInt
+  studentsHelped       Int
+  campaignsCompleted   Int
+  contributors         Int
+  capturedAt           DateTime @default(now())
+}
+
+model SiteSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  valueJson Json
+  updatedAt DateTime @updatedAt
+}
+
+model RateLimitBucket {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  count       Int      @default(0)
+  windowStart DateTime @default(now())
+}

@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: hafez
+          POSTGRES_PASSWORD: hafez
+          POSTGRES_DB: hafez
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U hafez -d hafez"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://hafez:hafez@localhost:5432/hafez?schema=public
+      AUTH_SECRET: ci-secret-at-least-thirty-two-chars
+      AUTH_URL: http://localhost:3000
+      PAYMENT_GATEWAY: mock
+      CRON_SECRET: ci-cron
+      STORAGE_DRIVER: local
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npx prisma db push
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npm run audit:deps
+      - name: Install psql client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - run: npm run backup:drill
+      - run: npm run build

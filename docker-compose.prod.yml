@@ -1,0 +1,52 @@
+# Production Compose — app only (managed Postgres + Object Storage outside).
+# Usage:
+#   cp .env.example .env   # fill production secrets
+#   docker compose -f docker-compose.prod.yml up -d --build
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      STORAGE_DRIVER: s3
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"
+
+  # Optional: hit reconcile on a schedule without host crontab
+  cron:
+    image: curlimages/curl:8.12.1
+    restart: unless-stopped
+    env_file:
+      - .env
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        while true; do
+          curl -fsS -X POST -H "x-cron-secret: $$CRON_SECRET" http://app:3000/api/cron/reconcile || true
+          sleep 900
+        done
+    depends_on:
+      app:
+        condition: service_healthy
