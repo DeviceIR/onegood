@@ -16,6 +16,8 @@ export type CampaignCardData = {
   collectedAmountToman: bigint | number;
   donorCount: number;
   deadline?: Date | null;
+  status?: "DRAFT" | "PUBLISHED" | "COMPLETED" | "ARCHIVED";
+  coverImageUrl?: string | null;
 };
 
 export function CampaignCard({ campaign }: { campaign: CampaignCardData }) {
@@ -24,17 +26,32 @@ export function CampaignCard({ campaign }: { campaign: CampaignCardData }) {
   const collected = BigInt(campaign.collectedAmountToman);
   const pct =
     target > 0n ? Math.min(100, Number((collected * 100n) / target)) : 0;
+  const completed = campaign.status === "COMPLETED";
 
   return (
     <motion.article
       variants={fadeUp}
       whileHover={reduce ? undefined : hoverLift}
       whileTap={reduce ? undefined : tapPress}
-      className="rounded-2xl border border-border/70 bg-card/80 p-5 shadow-[0_16px_40px_-28px_rgba(21,32,28,0.32)] md:p-6"
+      className="overflow-hidden rounded-2xl border border-border/70 bg-card/80 shadow-[0_16px_40px_-28px_rgba(21,32,28,0.32)]"
     >
-      <div className="flex flex-col md:flex-row md:items-end md:justify-between md:gap-8">
+      {campaign.coverImageUrl ? (
+        <div className="aspect-[16/9] overflow-hidden bg-border">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={campaign.coverImageUrl}
+            alt={campaign.titleFa}
+            className="h-full w-full object-cover"
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+      ) : null}
+      <div className="flex flex-col p-5 md:flex-row md:items-end md:justify-between md:gap-8 md:p-6">
         <div className="max-w-xl">
-          <p className="text-xs font-medium text-accent">کمپین فعال</p>
+          <p className="text-xs font-medium text-accent">
+            {completed ? "کمک تکمیل‌شده" : "کمپین فعال"}
+          </p>
           <h3 className="mt-1 text-xl font-semibold tracking-tight">
             {campaign.titleFa}
           </h3>
@@ -56,7 +73,7 @@ export function CampaignCard({ campaign }: { campaign: CampaignCardData }) {
               href={`/campaigns/${campaign.slug}`}
               className={motionLinkClass("primary")}
             >
-              مشارکت در یک خوبی
+              {completed ? "مشاهده این کمک" : "مشارکت در یک خوبی"}
             </MotionLink>
           </div>
         </div>

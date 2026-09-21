@@ -12,6 +12,8 @@ export default async function AdminDashboardPage() {
     failed: 0,
     active: 0,
     completed: 0,
+    unreadMessages: 0,
+    unreadVolunteers: 0,
     studentsHelped: 0,
     balances: { received: 0n, spent: 0n, remaining: 0n },
   };
@@ -22,7 +24,18 @@ export default async function AdminDashboardPage() {
     actorAdmin: { name: string } | null;
   }[] = [];
   try {
-    const [donations, success, failed, active, completed, balances, snap, audit] =
+    const [
+      donations,
+      success,
+      failed,
+      active,
+      completed,
+      balances,
+      snap,
+      audit,
+      unreadMessages,
+      unreadVolunteers,
+    ] =
       await Promise.all([
         prisma.donation.count(),
         prisma.payment.count({ where: { status: "SUCCESS" } }),
@@ -36,6 +49,8 @@ export default async function AdminDashboardPage() {
           take: 8,
           include: { actorAdmin: { select: { name: true } } },
         }),
+        prisma.contactMessage.count({ where: { handled: false } }),
+        prisma.volunteerApplication.count({ where: { handled: false } }),
       ]);
     stats = {
       donations,
@@ -43,6 +58,8 @@ export default async function AdminDashboardPage() {
       failed,
       active,
       completed,
+      unreadMessages,
+      unreadVolunteers,
       studentsHelped: snap?.studentsHelped ?? 0,
       balances,
     };
@@ -57,6 +74,16 @@ export default async function AdminDashboardPage() {
     { label: "پرداخت ناموفق", value: toPersianDigits(stats.failed) },
     { label: "کمپین فعال", value: toPersianDigits(stats.active) },
     { label: "تکمیل‌شده", value: toPersianDigits(stats.completed) },
+    {
+      label: "پیام‌های نخوانده",
+      value: toPersianDigits(stats.unreadMessages),
+      href: "/admin/messages",
+    },
+    {
+      label: "داوطلبان رسیدگی‌نشده",
+      value: toPersianDigits(stats.unreadVolunteers),
+      href: "/admin/volunteers",
+    },
     { label: "دانش‌آموزان کمک‌شده", value: toPersianDigits(stats.studentsHelped) },
   ];
 
@@ -64,12 +91,27 @@ export default async function AdminDashboardPage() {
     <div>
       <h1 className="text-2xl font-semibold">داشبورد</h1>
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {cards.map((c) => (
-          <div key={c.label} className="rounded-lg border border-border bg-card p-4">
-            <p className="text-sm text-muted">{c.label}</p>
-            <p className="mt-2 text-2xl font-semibold">{c.value}</p>
-          </div>
-        ))}
+        {cards.map((c) => {
+          const inner = (
+            <>
+              <p className="text-sm text-muted">{c.label}</p>
+              <p className="mt-2 text-2xl font-semibold">{c.value}</p>
+            </>
+          );
+          return "href" in c && c.href ? (
+            <Link
+              key={c.label}
+              href={c.href}
+              className="rounded-lg border border-border bg-card p-4 hover:border-accent/40"
+            >
+              {inner}
+            </Link>
+          ) : (
+            <div key={c.label} className="rounded-lg border border-border bg-card p-4">
+              {inner}
+            </div>
+          );
+        })}
         <div className="rounded-lg border border-border bg-card p-4 sm:col-span-2">
           <p className="text-sm text-muted">مانده دفترکل</p>
           <p className="mt-2 text-2xl font-semibold">

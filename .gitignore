@@ -40,3 +40,6 @@ next-env.d.ts
 # Backups (local dumps)
 backups/
 storage/
+
+# Local archives (not part of the app)
+onegood-v1.zip

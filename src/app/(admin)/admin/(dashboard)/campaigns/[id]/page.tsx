@@ -7,6 +7,7 @@ import {
   addCampaignUpdateAction,
   deleteCampaignNeedAction,
   publishCampaignUpdateAction,
+  setCampaignCoverAction,
   setCampaignStatusAction,
   updateCampaignAction,
 } from "@/features/campaigns/campaign-actions";
@@ -15,6 +16,8 @@ import {
   CAMPAIGN_STATUSES,
   campaignStatusFa,
 } from "@/lib/campaign-status";
+import { PublishChecklist } from "@/features/campaigns/PublishChecklist";
+import { MediaImage } from "@/components/media/MediaImage";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -29,6 +32,7 @@ const okMessage: Record<string, string> = {
   "need-deleted": "قلم حذف شد.",
   update: "به‌روزرسانی افزوده شد.",
   "update-published": "به‌روزرسانی منتشر شد.",
+  cover: "تصویر جلد ذخیره شد.",
 };
 
 export default async function AdminCampaignDetailPage({
@@ -37,13 +41,22 @@ export default async function AdminCampaignDetailPage({
 }: Props) {
   const { id } = await params;
   const { ok } = await searchParams;
-  const c = await prisma.campaign.findUnique({
-    where: { id },
-    include: {
-      needs: { orderBy: { sortOrder: "asc" } },
-      updates: { orderBy: { createdAt: "desc" } },
-    },
-  });
+  const [c, coverOptions] = await Promise.all([
+    prisma.campaign.findUnique({
+      where: { id },
+      include: {
+        coverMedia: { include: { variants: true } },
+        needs: { orderBy: { sortOrder: "asc" } },
+        updates: { orderBy: { createdAt: "desc" } },
+      },
+    }),
+    prisma.media.findMany({
+      where: { kind: "IMAGE" },
+      orderBy: { createdAt: "desc" },
+      take: 40,
+      include: { variants: true },
+    }),
+  ]);
   if (!c) notFound();
 
   const deadlineValue = c.deadline
@@ -108,6 +121,55 @@ export default async function AdminCampaignDetailPage({
           برای نمایش عمومی، وضعیت را روی «منتشرشده» بگذارید و ذخیره کنید.
         </p>
       )}
+
+      <PublishChecklist
+        status={c.status}
+        items={[
+          { ok: c.titleFa.trim().length >= 4, label: "عنوان" },
+          { ok: c.summaryFa.trim().length >= 20, label: "خلاصهٔ عمومی" },
+          { ok: c.storyFa.trim().length >= 40, label: "داستان" },
+          { ok: c.targetAmountToman > 0n, label: "مبلغ هدف" },
+          { ok: c.needs.length > 0, label: "حداقل یک قلم نیاز" },
+          { ok: c.coverMedia?.visibility === "PUBLIC", label: "تصویر جلد عمومی" },
+        ]}
+      />
+
+      <form
+        action={setCampaignCoverAction}
+        className="grid gap-3 rounded-lg border border-border p-4"
+      >
+        <h2 className="font-medium">تصویر جلد</h2>
+        <input type="hidden" name="id" value={c.id} />
+        {c.coverMedia ? (
+          <div className="h-28 w-44 overflow-hidden rounded border">
+            <MediaImage
+              media={c.coverMedia}
+              preferredWidth={400}
+              className="h-full w-full object-cover"
+            />
+          </div>
+        ) : (
+          <p className="text-sm text-muted">
+            هنوز تصویری انتخاب نشده. ابتدا از صفحه رسانه آپلود کنید.
+          </p>
+        )}
+        <select
+          name="coverMediaId"
+          defaultValue={c.coverMediaId ?? ""}
+          className="h-10 rounded border border-border px-2"
+        >
+          <option value="">بدون تصویر جلد</option>
+          {coverOptions.map((m) => (
+            <option key={m.id} value={m.id}>
+              {m.altTextFa ?? m.storageKey.slice(0, 24)}
+              {m.visibility === "PUBLIC" ? "" : " (داخلی — در سایت دیده نمی‌شود)"}
+            </option>
+          ))}
+        </select>
+        <button type="submit" className="h-10 rounded bg-accent text-accent-foreground">
+          ذخیره تصویر جلد
+        </button>
+      </form>
 
       <form
         action={updateCampaignAction}

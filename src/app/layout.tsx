@@ -63,7 +63,7 @@ export const metadata: Metadata = {
     url: siteUrl(),
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: SITE_TITLE_DEFAULT,
     description: SITE_TAGLINE_FA,
   },

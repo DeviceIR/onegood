@@ -3,12 +3,18 @@
 import type { ReactNode } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { duration, ease } from "@/lib/motion";
+import { CopyButton } from "@/components/CopyButton";
 
 export function DonationReference({ code }: { code: string }) {
   return (
-    <p className="rounded-xl border border-border bg-card px-4 py-3 font-mono text-lg tracking-wide">
-      {code}
-    </p>
+    <div className="rounded-xl border border-border bg-card px-4 py-3">
+      <p className="font-mono text-lg tracking-wide" dir="ltr">
+        {code}
+      </p>
+      <div className="mt-3 flex justify-center">
+        <CopyButton text={code} label="کپی کد پیگیری" />
+      </div>
+    </div>
   );
 }
 

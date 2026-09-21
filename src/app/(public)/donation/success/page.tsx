@@ -4,6 +4,8 @@ import {
 } from "@/features/donations/PaymentStatus";
 import { MotionLink } from "@/components/motion/MotionLink";
 import { motionLinkClass } from "@/lib/motion";
+import { ShareActions } from "@/components/ShareActions";
+import { absoluteUrl } from "@/lib/seo";
 
 export default async function DonationSuccessPage({
   searchParams,
@@ -19,6 +21,12 @@ export default async function DonationSuccessPage({
           <DonationReference code={ref} />
         </div>
       ) : null}
+      <div className="mt-8 flex justify-center">
+        <ShareActions
+          url={absoluteUrl("/campaigns")}
+          title="من در ONE GOOD در یک خوبی مشارکت کردم"
+        />
+      </div>
       <div className="mt-8 flex justify-center gap-4 text-foreground">
         <MotionLink href="/campaigns" className={motionLinkClass("ghost")}>
           کمک‌های دیگر

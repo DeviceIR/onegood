@@ -19,7 +19,16 @@ import {
 import { duration, ease, motionLinkClass } from "@/lib/motion";
 import { MotionLink } from "@/components/motion/MotionLink";
 
-const links = [
+const headerLinks = [
+  { href: "/", label: "خانه" },
+  { href: "/campaigns", label: "کمک‌ها" },
+  { href: "/packages", label: "بسته‌ها" },
+  { href: "/impact", label: "اثر ما" },
+  { href: "/transparency", label: "شفافیت" },
+  { href: "/about", label: "درباره ما" },
+];
+
+const footerLinks = [
   { href: "/", label: "خانه" },
   { href: "/campaigns", label: "کمک‌ها" },
   { href: "/packages", label: "بسته‌ها و قیمت‌ها" },
@@ -112,7 +121,7 @@ export function SiteHeader() {
           className="hidden items-center gap-0.5 text-sm md:flex"
           aria-label="اصلی"
         >
-          {links.map((l, i) => {
+          {headerLinks.map((l, i) => {
             const active = isActivePath(l.href, pathname);
             return (
               <motion.div
@@ -191,7 +200,7 @@ export function SiteHeader() {
             transition={{ duration: 0.35, ease }}
           >
             <ul className="flex flex-col gap-1">
-              {links.map((l) => {
+              {headerLinks.map((l) => {
                 const active = isActivePath(l.href, pathname);
                 return (
                   <li key={l.href}>
@@ -256,7 +265,7 @@ export function SiteFooter() {
                 پیمایش
               </p>
               <ul className="flex flex-col gap-2.5 text-sm text-muted">
-                {links.map((l) => (
+                {footerLinks.map((l) => (
                   <li key={l.href}>
                     <Link
                       href={l.href}

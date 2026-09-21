@@ -4,6 +4,7 @@ import { Money } from "@/components/Money";
 import {
   createCampaignAction,
   setCampaignStatusAction,
+  toggleCampaignFeaturedAction,
 } from "@/features/campaigns/campaign-actions";
 import {
   CAMPAIGN_STATUS_FA,
@@ -24,7 +25,11 @@ export default async function AdminCampaignsPage({
   return (
     <div>
       <h1 className="text-2xl font-semibold">کمپین‌ها</h1>
-      {ok ? (
+      {ok === "featured" ? (
+        <p className="mt-3 rounded-md border border-accent/30 bg-accent/10 px-3 py-2 text-sm text-accent">
+          نمایش در صفحه اول به‌روز شد.
+        </p>
+      ) : ok ? (
         <p className="mt-3 rounded-md border border-accent/30 bg-accent/10 px-3 py-2 text-sm text-accent">
           تغییرات با موفقیت ذخیره شد.
         </p>
@@ -86,12 +91,25 @@ export default async function AdminCampaignsPage({
                 {c.titleFa}
               </Link>
               <p className="text-sm text-muted">
-                {campaignStatusFa(c.status)} —{" "}
+                {campaignStatusFa(c.status)}
+                {c.isFeatured ? " · ویژه صفحه اول" : ""} —{" "}
                 <Money amount={c.collectedAmountToman} /> /{" "}
                 <Money amount={c.targetAmountToman} />
               </p>
             </div>
-            <form action={setCampaignStatusAction} className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-3">
+              <form action={toggleCampaignFeaturedAction}>
+                <input type="hidden" name="id" value={c.id} />
+                <input
+                  type="hidden"
+                  name="featured"
+                  value={c.isFeatured ? "0" : "1"}
+                />
+                <button type="submit" className="text-sm text-accent">
+                  {c.isFeatured ? "حذف از صفحه اول" : "نمایش در صفحه اول"}
+                </button>
+              </form>
+              <form action={setCampaignStatusAction} className="flex items-center gap-2">
               <input type="hidden" name="id" value={c.id} />
               <input type="hidden" name="returnTo" value="list" />
               <select
@@ -109,7 +127,8 @@ export default async function AdminCampaignsPage({
               <button type="submit" className="text-sm text-accent">
                 ذخیره وضعیت
               </button>
-            </form>
+              </form>
+            </div>
           </li>
         ))}
       </ul>

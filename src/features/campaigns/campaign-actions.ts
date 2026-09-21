@@ -112,6 +112,63 @@ export async function updateCampaignAction(formData: FormData) {
   redirect(`/admin/campaigns/${id}?ok=saved`);
 }
 
+export async function toggleCampaignFeaturedAction(formData: FormData) {
+  const admin = await requireAdminMutation("CAMPAIGN_MANAGER");
+  const id = String(formData.get("id") ?? "").trim();
+  const featured = String(formData.get("featured") ?? "") === "1";
+  if (!id) throw new Error("کمپین پیدا نشد");
+  const before = await prisma.campaign.findUnique({ where: { id } });
+  if (!before) throw new Error("کمپین پیدا نشد");
+
+  await prisma.campaign.update({
+    where: { id },
+    data: { isFeatured: featured },
+  });
+  await safeAudit({
+    actorType: "ADMIN",
+    actorAdminId: admin.id,
+    action: "campaign.featured",
+    entityType: "Campaign",
+    entityId: id,
+    afterJson: { isFeatured: featured },
+  });
+  bustCampaignCache(before.slug);
+  revalidatePath(`/admin/campaigns/${id}`);
+  redirect("/admin/campaigns?ok=featured");
+}
+
+export async function setCampaignCoverAction(formData: FormData) {
+  const admin = await requireAdminMutation("CAMPAIGN_MANAGER");
+  const id = String(formData.get("id") ?? "").trim();
+  const coverMediaId = String(formData.get("coverMediaId") ?? "").trim() || null;
+  if (!id) throw new Error("کمپین پیدا نشد");
+  const before = await prisma.campaign.findUnique({ where: { id } });
+  if (!before) throw new Error("کمپین پیدا نشد");
+
+  if (coverMediaId) {
+    const media = await prisma.media.findUnique({ where: { id: coverMediaId } });
+    if (!media || media.kind !== "IMAGE") {
+      throw new Error("رسانه تصویر نامعتبر است");
+    }
+  }
+
+  await prisma.campaign.update({
+    where: { id },
+    data: { coverMediaId },
+  });
+  await safeAudit({
+    actorType: "ADMIN",
+    actorAdminId: admin.id,
+    action: "campaign.cover",
+    entityType: "Campaign",
+    entityId: id,
+    afterJson: { coverMediaId },
+  });
+  bustCampaignCache(before.slug);
+  revalidatePath(`/admin/campaigns/${id}`);
+  redirect(`/admin/campaigns/${id}?ok=cover`);
+}
+
 export async function setCampaignStatusAction(formData: FormData) {
   const admin = await requireAdminMutation("CAMPAIGN_MANAGER");
   const id = String(formData.get("id") ?? "").trim();

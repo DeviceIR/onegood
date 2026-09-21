@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import type { AdminRole } from "@prisma/client";
 import { roleHasMin } from "@/server/auth/roles";
 import { adminRoleFa } from "@/lib/admin-labels";
+import { prisma } from "@/server/db/prisma";
+import { toPersianDigits } from "@/lib/money";
 
 const nav: { href: string; label: string; minRole: AdminRole }[] = [
   { href: "/admin", label: "داشبورد", minRole: "VIEWER" },
@@ -31,6 +33,26 @@ export default async function AdminDashboardLayout({
   if (!session?.user) redirect("/admin/login");
   const role = session.user.role ?? "VIEWER";
   const visible = nav.filter((n) => roleHasMin(role, n.minRole));
+  let unreadMessages = 0;
+  let unreadVolunteers = 0;
+  if (roleHasMin(role, "ADMIN")) {
+    try {
+      [unreadMessages, unreadVolunteers] = await Promise.all([
+        prisma.contactMessage.count({ where: { handled: false } }),
+        prisma.volunteerApplication.count({ where: { handled: false } }),
+      ]);
+    } catch {
+      /* inbox counts are optional */
+    }
+  }
+
+  const badgeFor = (href: string) => {
+    if (href === "/admin/messages" && unreadMessages > 0) return unreadMessages;
+    if (href === "/admin/volunteers" && unreadVolunteers > 0) {
+      return unreadVolunteers;
+    }
+    return 0;
+  };
 
   return (
     <div className="min-h-screen bg-background md:flex">
@@ -41,15 +63,23 @@ export default async function AdminDashboardLayout({
           <p className="text-xs text-muted">{adminRoleFa(role)}</p>
         </div>
         <nav className="flex flex-wrap gap-2 px-3 pb-4 md:flex-col" aria-label="ادمین">
-          {visible.map((n) => (
-            <Link
-              key={n.href}
-              href={n.href}
-              className="rounded px-2 py-1.5 text-sm text-muted hover:bg-border/50 hover:text-foreground"
-            >
-              {n.label}
-            </Link>
-          ))}
+          {visible.map((n) => {
+            const badge = badgeFor(n.href);
+            return (
+              <Link
+                key={n.href}
+                href={n.href}
+                className="rounded px-2 py-1.5 text-sm text-muted hover:bg-border/50 hover:text-foreground"
+              >
+                {n.label}
+                {badge > 0 ? (
+                  <span className="ms-2 inline-flex min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-[10px] text-accent-foreground">
+                    {toPersianDigits(badge)}
+                  </span>
+                ) : null}
+              </Link>
+            );
+          })}
         </nav>
         <form
           className="px-3 pb-4"

@@ -4,11 +4,16 @@ import { prisma } from "@/server/db/prisma";
 export const CAMPAIGNS_TAG = "campaigns";
 export const campaignTag = (slug: string) => `campaign:${slug}`;
 
+const coverMediaInclude = {
+  coverMedia: { include: { variants: true } },
+} as const;
+
 export async function getPublishedCampaigns() {
   return unstable_cache(
     async () =>
       prisma.campaign.findMany({
         where: { status: { in: ["PUBLISHED", "COMPLETED"] } },
+        include: coverMediaInclude,
         orderBy: [{ status: "asc" }, { isFeatured: "desc" }, { sortOrder: "asc" }],
       }),
     ["campaigns-list"],
@@ -22,6 +27,7 @@ export async function getPublishedCampaignBySlug(slug: string) {
       prisma.campaign.findFirst({
         where: { slug, status: { in: ["PUBLISHED", "COMPLETED"] } },
         include: {
+          ...coverMediaInclude,
           needs: { orderBy: { sortOrder: "asc" } },
           updates: {
             where: { status: "PUBLISHED" },
@@ -49,6 +55,7 @@ export async function getFeaturedPublishedCampaigns(take = 6) {
     async () =>
       prisma.campaign.findMany({
         where: { status: "PUBLISHED" },
+        include: coverMediaInclude,
         orderBy: [{ isFeatured: "desc" }, { sortOrder: "asc" }],
         take,
       }),

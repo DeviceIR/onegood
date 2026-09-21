@@ -17,6 +17,7 @@ import { prisma } from "@/server/db/prisma";
 import { BalanceSummary } from "@/features/transparency/LedgerViews";
 import { getBalances } from "@/server/ledger";
 import { getFeaturedPublishedCampaigns } from "@/server/campaigns/queries";
+import { toCampaignCardData } from "@/features/campaigns/card-data";
 import { mediaDisplayUrl } from "@/components/media/MediaImage";
 import { SITE_EXPRESSION_FA, SITE_NAME_EN } from "@/lib/seo";
 import { toMoneyNumber } from "@/lib/money";
@@ -72,13 +73,7 @@ async function getHomeData() {
     return {
       campaigns: campaigns.map((c) => ({
         id: c.id,
-        slug: c.slug,
-        titleFa: c.titleFa,
-        summaryFa: c.summaryFa,
-        targetAmountToman: toMoneyNumber(c.targetAmountToman),
-        collectedAmountToman: toMoneyNumber(c.collectedAmountToman),
-        donorCount: c.donorCount,
-        deadline: c.deadline,
+        ...toCampaignCardData(c),
       })),
       donations: donations.map((d) => ({
         ...d,
@@ -165,80 +160,75 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-20">
-        <SectionHeading
-          title="کمک‌های فعال"
-          subtitle="هر کمپین نیاز مشخص، مبلغ هدف، و مسیر شفاف دارد."
-        />
-        {data.campaigns.length === 0 ? (
-          <p className="text-muted">به‌زودی کمپین‌ها اینجا نمایش داده می‌شوند.</p>
-        ) : (
+      {data.campaigns.length > 0 ? (
+        <section className="mx-auto max-w-6xl px-4 py-20">
+          <SectionHeading
+            title="کمک‌های فعال"
+            subtitle="هر کمپین نیاز مشخص، مبلغ هدف، و مسیر شفاف دارد."
+          />
           <Stagger className="grid gap-4">
             {data.campaigns.map((c) => (
               <CampaignCard key={c.id} campaign={c} />
             ))}
           </Stagger>
-        )}
-        <Reveal className="mt-6">
-          <MotionLink href="/campaigns" className={motionLinkClass("ghost")}>
-            همه کمک‌ها
-          </MotionLink>
-        </Reveal>
-      </section>
-
-      <section className="section-fade-soft py-20">
-        <div className="mx-auto max-w-6xl px-4">
-          <SectionHeading
-            title="اثر واقعی"
-            subtitle="پول تبدیل به وسیله و نتیجه می‌شود — بدون بهره‌کشی احساسی از کودکان."
-          />
-          <ImpactGalleryGrid items={galleryItems} />
           <Reveal className="mt-6">
-            <MotionLink href="/impact" className={motionLinkClass("ghost")}>
-              گالری اثر کمک‌ها
+            <MotionLink href="/campaigns" className={motionLinkClass("ghost")}>
+              همه کمک‌ها
             </MotionLink>
           </Reveal>
-        </div>
-      </section>
+        </section>
+      ) : null}
 
-      <section className="mx-auto max-w-6xl px-4 py-20">
-        <SectionHeading
-          title="فعالیت کمک‌ها"
-          subtitle="نام و مبلغ فقط با رضایت همراه نمایش داده می‌شود."
-        />
-        <DonationActivityFeed donations={data.donations} />
-      </section>
+      {galleryItems.length > 0 ? (
+        <section className="section-fade-soft py-20">
+          <div className="mx-auto max-w-6xl px-4">
+            <SectionHeading
+              title="اثر واقعی"
+              subtitle="پول تبدیل به وسیله و نتیجه می‌شود — بدون بهره‌کشی احساسی از کودکان."
+            />
+            <ImpactGalleryGrid items={galleryItems} />
+            <Reveal className="mt-6">
+              <MotionLink href="/impact" className={motionLinkClass("ghost")}>
+                گالری اثر کمک‌ها
+              </MotionLink>
+            </Reveal>
+          </div>
+        </section>
+      ) : null}
 
-      <section className="section-fade-soft py-20">
-        <div className="mx-auto max-w-6xl px-4">
+      {data.donations.length > 0 ? (
+        <section className="mx-auto max-w-6xl px-4 py-20">
           <SectionHeading
-            title="ویدیوها"
-            subtitle="بدون پخش خودکار با صدا؛ بارگذاری تنبل."
+            title="فعالیت کمک‌ها"
+            subtitle="نام و مبلغ فقط با رضایت همراه نمایش داده می‌شود."
           />
-          <VideoTeaser videos={videoItems} />
-          <Reveal className="mt-6">
-            <MotionLink href="/impact/videos" className={motionLinkClass("ghost")}>
-              همه ویدیوها
-            </MotionLink>
-          </Reveal>
-        </div>
-      </section>
+          <DonationActivityFeed donations={data.donations} />
+        </section>
+      ) : null}
 
-      <section className="mx-auto max-w-6xl px-4 py-20">
-        <SectionHeading
-          title="از زبان همراهان"
-          subtitle="با حفظ کرامت و بدون سوءاستفاده از تصویر کودکان."
-        />
-        {data.testimonials.length === 0 ? (
-          <Reveal>
-            <div className="rounded-2xl border border-dashed border-border/80 bg-card/50 px-5 py-8 text-center">
-              <p className="font-medium">هنوز نظری منتشر نشده است</p>
-              <p className="mt-2 text-sm text-muted">
-                حرف‌های واقعی همراهان، بعد از ثبت و تأیید اینجا می‌آید.
-              </p>
-            </div>
-          </Reveal>
-        ) : (
+      {videoItems.length > 0 ? (
+        <section className="section-fade-soft py-20">
+          <div className="mx-auto max-w-6xl px-4">
+            <SectionHeading
+              title="ویدیوها"
+              subtitle="بدون پخش خودکار با صدا؛ بارگذاری تنبل."
+            />
+            <VideoTeaser videos={videoItems} />
+            <Reveal className="mt-6">
+              <MotionLink href="/impact/videos" className={motionLinkClass("ghost")}>
+                همه ویدیوها
+              </MotionLink>
+            </Reveal>
+          </div>
+        </section>
+      ) : null}
+
+      {data.testimonials.length > 0 ? (
+        <section className="mx-auto max-w-6xl px-4 py-20">
+          <SectionHeading
+            title="از زبان همراهان"
+            subtitle="با حفظ کرامت و بدون سوءاستفاده از تصویر کودکان."
+          />
           <Stagger className="grid gap-10 md:grid-cols-2">
             {data.testimonials.map((t) => (
               <FadeItem key={t.id}>
@@ -250,25 +240,27 @@ export default async function HomePage() {
               </FadeItem>
             ))}
           </Stagger>
-        )}
-      </section>
+        </section>
+      ) : null}
 
-      <section className="section-fade-soft py-20">
-        <div className="mx-auto max-w-6xl px-4">
-          <SectionHeading
-            title="شفافیت مالی"
-            subtitle="ببینید کمک شما به چه چیزی تبدیل شد."
-          />
-          <Reveal>
-            <BalanceSummary {...data.balances} />
-          </Reveal>
-          <Reveal className="mt-6">
-            <MotionLink href="/transparency" className={motionLinkClass("ghost")}>
-              جزئیات شفافیت
-            </MotionLink>
-          </Reveal>
-        </div>
-      </section>
+      {data.balances.received > 0 ? (
+        <section className="section-fade-soft py-20">
+          <div className="mx-auto max-w-6xl px-4">
+            <SectionHeading
+              title="شفافیت مالی"
+              subtitle="ببینید کمک شما به چه چیزی تبدیل شد."
+            />
+            <Reveal>
+              <BalanceSummary {...data.balances} />
+            </Reveal>
+            <Reveal className="mt-6">
+              <MotionLink href="/transparency" className={motionLinkClass("ghost")}>
+                جزئیات شفافیت
+              </MotionLink>
+            </Reveal>
+          </div>
+        </section>
+      ) : null}
 
       <section className="mx-auto max-w-6xl px-4 py-20">
         <SectionHeading
