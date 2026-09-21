@@ -1,5 +1,6 @@
-import Link from "next/link";
 import { PaymentStatusBanner } from "@/features/donations/PaymentStatus";
+import { MotionLink } from "@/components/motion/MotionLink";
+import { motionLinkClass } from "@/lib/motion";
 
 export default async function DonationFailedPage({
   searchParams,
@@ -15,12 +16,12 @@ export default async function DonationFailedPage({
         نمی‌شود.
       </p>
       {reason ? <p className="mt-2 text-xs">کد: {reason}</p> : null}
-      <Link
+      <MotionLink
         href="/campaigns"
-        className="mt-8 inline-flex h-11 items-center rounded-md bg-accent px-5 text-accent-foreground"
+        className={`${motionLinkClass("primary")} mt-8`}
       >
         بازگشت به کمک‌ها
-      </Link>
+      </MotionLink>
     </PaymentStatusBanner>
   );
 }

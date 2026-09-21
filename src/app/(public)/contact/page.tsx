@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { SITE_NAME_EN, SITE_NAME_FA } from "@/lib/seo";
+import { PageHeader } from "@/components/PageHeader";
 
 export default function ContactPage() {
   const [status, setStatus] = useState<string | null>(null);
@@ -28,11 +29,10 @@ export default function ContactPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-12">
-      <h1 className="text-3xl font-bold">تماس با ما</h1>
-      <p className="mt-3 text-muted">
-        برای پرسش درباره کمپین‌ها، همکاری داوطلبانه، یا شفافیت مالی با تیم{" "}
-        {SITE_NAME_FA} در ارتباط باشید.
-      </p>
+      <PageHeader
+        title="تماس با ما"
+        subtitle={`برای پرسش درباره کمپین‌ها، همکاری داوطلبانه، یا شفافیت مالی با تیم ${SITE_NAME_FA} در ارتباط باشید.`}
+      />
 
       <div className="mt-8 grid gap-4 rounded-2xl border border-border bg-card/80 p-5 text-sm md:grid-cols-2">
         <div>

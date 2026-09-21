@@ -1,7 +1,10 @@
+"use client";
+
 import { serializeDonationPublic } from "@/server/privacy/donation-serializer";
 import { formatToman } from "@/lib/money";
 import { JalaliDate } from "@/components/JalaliDate";
 import type { Donation } from "@prisma/client";
+import { Stagger, FadeItem } from "@/features/home/motion/Reveal";
 
 type Row = Omit<Donation, "amountToman"> & {
   amountToman: bigint | number;
@@ -25,9 +28,13 @@ export function DonationActivityFeed({ donations }: { donations: Row[] }) {
   }
 
   return (
-    <ul className="divide-y divide-border">
+    <Stagger className="divide-y divide-border overflow-hidden rounded-2xl border border-border/60 bg-card/50">
       {views.map((d) => (
-        <li key={d!.id} className="flex flex-wrap items-baseline justify-between gap-2 py-4">
+        <FadeItem
+          key={d!.id}
+          as="div"
+          className="flex flex-wrap items-baseline justify-between gap-2 px-4 py-4"
+        >
           <div>
             <p className="font-medium">{d!.displayName}</p>
             {d!.campaignTitle ? (
@@ -42,8 +49,8 @@ export function DonationActivityFeed({ donations }: { donations: Row[] }) {
             </p>
             <JalaliDate date={d!.createdAt} className="text-muted" />
           </div>
-        </li>
+        </FadeItem>
       ))}
-    </ul>
+    </Stagger>
   );
 }

@@ -1,5 +1,8 @@
-import Link from "next/link";
 import { Money } from "@/components/Money";
+import { PageHeader } from "@/components/PageHeader";
+import { MotionLink } from "@/components/motion/MotionLink";
+import { motionLinkClass } from "@/lib/motion";
+import { Stagger, FadeItem } from "@/features/home/motion/Reveal";
 import { buildPageMetadata, SITE_EXPRESSION_FA, SITE_NAME_EN } from "@/lib/seo";
 import { toPersianDigits } from "@/lib/money";
 
@@ -68,20 +71,17 @@ const packages = [
 export default function PackagesPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-12">
-      <p className="text-sm tracking-[0.2em] text-muted" dir="ltr">
-        {SITE_NAME_EN}
-      </p>
-      <h1 className="mt-2 text-3xl font-bold">بسته‌ها و قیمت‌ها</h1>
-      <p className="mt-4 max-w-2xl leading-relaxed text-muted">
-        خدمات قابل ارائه {SITE_EXPRESSION_FA} به‌صورت بسته‌های مشخص با اقلام و
-        قیمت واقعی است. می‌توانید یک بسته کامل یا بخشی از مبلغ یک کمپین را
-        تأمین کنید.
-      </p>
+      <PageHeader
+        kicker={SITE_NAME_EN}
+        title="بسته‌ها و قیمت‌ها"
+        subtitle={`خدمات قابل ارائه ${SITE_EXPRESSION_FA} به‌صورت بسته‌های مشخص با اقلام و قیمت واقعی است. می‌توانید یک بسته کامل یا بخشی از مبلغ یک کمپین را تأمین کنید.`}
+      />
 
-      <ul className="mt-10 space-y-8">
+      <Stagger as="ul" className="mt-2 space-y-8">
         {packages.map((pkg) => (
-          <li
+          <FadeItem
             key={pkg.id}
+            as="li"
             className="rounded-2xl border border-border/80 bg-card/80 p-6 shadow-[0_16px_40px_-28px_rgba(21,32,28,0.3)]"
           >
             <div className="flex flex-wrap items-start justify-between gap-4">
@@ -117,15 +117,12 @@ export default function PackagesPage() {
               </tbody>
             </table>
 
-            <Link
-              href={pkg.href}
-              className="mt-6 inline-flex h-11 items-center rounded-xl bg-accent px-5 text-sm text-accent-foreground"
-            >
+            <MotionLink href={pkg.href} className={`${motionLinkClass("primary")} mt-6`}>
               مشاهده کمپین و مشارکت
-            </Link>
-          </li>
+            </MotionLink>
+          </FadeItem>
         ))}
-      </ul>
+      </Stagger>
 
       <section className="mt-12 rounded-2xl border border-border bg-surface-soft/80 p-6">
         <h2 className="text-lg font-semibold">مبالغ پیشنهادی مشارکت</h2>
@@ -142,12 +139,12 @@ export default function PackagesPage() {
             </li>
           ))}
         </ul>
-        <Link
+        <MotionLink
           href="/campaigns"
-          className="mt-6 inline-flex text-accent hover:underline"
+          className={`${motionLinkClass("ghost")} mt-6`}
         >
           رفتن به فهرست کمپین‌ها
-        </Link>
+        </MotionLink>
       </section>
     </div>
   );

@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { formatToman } from "@/lib/money";
 import { formatJalaliDate } from "@/lib/jalali";
+import { PageHeader } from "@/components/PageHeader";
 
 export default function TrackDonationPage() {
   const [ref, setRef] = useState("");
@@ -34,8 +35,10 @@ export default function TrackDonationPage() {
 
   return (
     <div className="mx-auto max-w-md px-4 py-12">
-      <h1 className="text-2xl font-semibold">پیگیری کمک</h1>
-      <p className="mt-2 text-sm text-muted">کد پیگیری را وارد کنید (مثلاً HFZ-…).</p>
+      <PageHeader
+        title="پیگیری کمک"
+        subtitle="کد پیگیری را وارد کنید (مثلاً HFZ-…)."
+      />
       <form onSubmit={onSubmit} className="mt-6 flex gap-2">
         <Input value={ref} onChange={(e) => setRef(e.target.value)} required />
         <Button type="submit">جستجو</Button>

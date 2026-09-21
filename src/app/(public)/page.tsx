@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { ImpactCard3D } from "@/features/home/impact-card/ImpactCard3D";
 import { CampaignCard } from "@/features/campaigns/CampaignCard";
 import { DonationActivityFeed } from "@/features/home/activity/DonationActivityFeed";
@@ -7,9 +6,13 @@ import {
   TestimonialCard,
   VideoTeaser,
 } from "@/features/home/sections/HomeSections";
-import { Reveal } from "@/features/home/motion/Reveal";
+import { Reveal, Stagger, FadeItem } from "@/features/home/motion/Reveal";
 import { HeroIntro } from "@/features/home/motion/HeroIntro";
+import { HeroAtmosphere } from "@/features/home/motion/HeroAtmosphere";
+import { HowItWorks } from "@/features/home/sections/HowItWorks";
 import { SectionHeading } from "@/components/SectionHeading";
+import { MotionLink } from "@/components/motion/MotionLink";
+import { motionLinkClass } from "@/lib/motion";
 import { prisma } from "@/server/db/prisma";
 import { BalanceSummary } from "@/features/transparency/LedgerViews";
 import { getBalances } from "@/server/ledger";
@@ -155,6 +158,7 @@ export default async function HomePage() {
               "radial-gradient(ellipse at 78% 8%, color-mix(in srgb, var(--color-accent) 16%, transparent), transparent 52%), radial-gradient(ellipse at 12% 70%, color-mix(in srgb, var(--color-gold) 10%, transparent), transparent 48%), linear-gradient(180deg, var(--color-hero) 0%, color-mix(in srgb, var(--color-hero) 70%, var(--color-surface)) 62%, transparent 100%)",
           }}
         />
+        <HeroAtmosphere />
         <div className="relative mx-auto grid max-w-6xl gap-10 px-4 pb-20 pt-8 md:grid-cols-[1.15fr_0.85fr] md:items-center md:pb-28 md:pt-12">
           <HeroIntro />
           <ImpactCard3D stats={impactStats} />
@@ -162,181 +166,131 @@ export default async function HomePage() {
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-20">
-        <Reveal>
-          <SectionHeading
-            title="کمک‌های فعال"
-            subtitle="هر کمپین نیاز مشخص، مبلغ هدف، و مسیر شفاف دارد."
-          />
-          <div>
-            {data.campaigns.length === 0 ? (
-              <p className="text-muted">
-                به‌زودی کمپین‌ها اینجا نمایش داده می‌شوند.
-              </p>
-            ) : (
-              data.campaigns.map((c) => (
-                <CampaignCard key={c.id} campaign={c} />
-              ))
-            )}
-          </div>
-          <Link
-            href="/campaigns"
-            className="mt-6 inline-block text-accent hover:underline"
-          >
+        <SectionHeading
+          title="کمک‌های فعال"
+          subtitle="هر کمپین نیاز مشخص، مبلغ هدف، و مسیر شفاف دارد."
+        />
+        {data.campaigns.length === 0 ? (
+          <p className="text-muted">به‌زودی کمپین‌ها اینجا نمایش داده می‌شوند.</p>
+        ) : (
+          <Stagger className="grid gap-4">
+            {data.campaigns.map((c) => (
+              <CampaignCard key={c.id} campaign={c} />
+            ))}
+          </Stagger>
+        )}
+        <Reveal className="mt-6">
+          <MotionLink href="/campaigns" className={motionLinkClass("ghost")}>
             همه کمک‌ها
-          </Link>
+          </MotionLink>
         </Reveal>
       </section>
 
       <section className="section-fade-soft py-20">
         <div className="mx-auto max-w-6xl px-4">
-          <Reveal>
-            <SectionHeading
-              title="اثر واقعی"
-              subtitle="پول تبدیل به وسیله و نتیجه می‌شود — بدون بهره‌کشی احساسی از کودکان."
-            />
-            <ImpactGalleryGrid items={galleryItems} />
-            <Link
-              href="/impact"
-              className="mt-6 inline-block text-accent hover:underline"
-            >
+          <SectionHeading
+            title="اثر واقعی"
+            subtitle="پول تبدیل به وسیله و نتیجه می‌شود — بدون بهره‌کشی احساسی از کودکان."
+          />
+          <ImpactGalleryGrid items={galleryItems} />
+          <Reveal className="mt-6">
+            <MotionLink href="/impact" className={motionLinkClass("ghost")}>
               گالری اثر کمک‌ها
-            </Link>
+            </MotionLink>
           </Reveal>
         </div>
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-20">
-        <Reveal>
-          <SectionHeading
-            title="فعالیت کمک‌ها"
-            subtitle="نام و مبلغ فقط با رضایت همراه نمایش داده می‌شود."
-          />
-          <DonationActivityFeed donations={data.donations} />
-        </Reveal>
+        <SectionHeading
+          title="فعالیت کمک‌ها"
+          subtitle="نام و مبلغ فقط با رضایت همراه نمایش داده می‌شود."
+        />
+        <DonationActivityFeed donations={data.donations} />
       </section>
 
       <section className="section-fade-soft py-20">
         <div className="mx-auto max-w-6xl px-4">
-          <Reveal>
-            <SectionHeading
-              title="ویدیوها"
-              subtitle="بدون پخش خودکار با صدا؛ بارگذاری تنبل."
-            />
-            <VideoTeaser videos={videoItems} />
-            <Link
-              href="/impact/videos"
-              className="mt-6 inline-block text-accent hover:underline"
-            >
+          <SectionHeading
+            title="ویدیوها"
+            subtitle="بدون پخش خودکار با صدا؛ بارگذاری تنبل."
+          />
+          <VideoTeaser videos={videoItems} />
+          <Reveal className="mt-6">
+            <MotionLink href="/impact/videos" className={motionLinkClass("ghost")}>
               همه ویدیوها
-            </Link>
+            </MotionLink>
           </Reveal>
         </div>
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-20">
-        <Reveal>
-          <SectionHeading
-            title="از زبان همراهان"
-            subtitle="با حفظ کرامت و بدون سوءاستفاده از تصویر کودکان."
-          />
-          {data.testimonials.length === 0 ? (
+        <SectionHeading
+          title="از زبان همراهان"
+          subtitle="با حفظ کرامت و بدون سوءاستفاده از تصویر کودکان."
+        />
+        {data.testimonials.length === 0 ? (
+          <Reveal>
             <div className="rounded-2xl border border-dashed border-border/80 bg-card/50 px-5 py-8 text-center">
               <p className="font-medium">هنوز نظری منتشر نشده است</p>
               <p className="mt-2 text-sm text-muted">
                 حرف‌های واقعی همراهان، بعد از ثبت و تأیید اینجا می‌آید.
               </p>
             </div>
-          ) : (
-            <ul className="grid gap-10 md:grid-cols-2">
-              {data.testimonials.map((t) => (
-                <li key={t.id}>
-                  <TestimonialCard
-                    authorDisplayName={t.authorDisplayName}
-                    authorRole={t.authorRole}
-                    bodyFa={t.bodyFa}
-                  />
-                </li>
-              ))}
-            </ul>
-          )}
-        </Reveal>
+          </Reveal>
+        ) : (
+          <Stagger className="grid gap-10 md:grid-cols-2">
+            {data.testimonials.map((t) => (
+              <FadeItem key={t.id}>
+                <TestimonialCard
+                  authorDisplayName={t.authorDisplayName}
+                  authorRole={t.authorRole}
+                  bodyFa={t.bodyFa}
+                />
+              </FadeItem>
+            ))}
+          </Stagger>
+        )}
       </section>
 
       <section className="section-fade-soft py-20">
         <div className="mx-auto max-w-6xl px-4">
+          <SectionHeading
+            title="شفافیت مالی"
+            subtitle="ببینید کمک شما به چه چیزی تبدیل شد."
+          />
           <Reveal>
-            <SectionHeading
-              title="شفافیت مالی"
-              subtitle="ببینید کمک شما به چه چیزی تبدیل شد."
-            />
             <BalanceSummary {...data.balances} />
-            <Link
-              href="/transparency"
-              className="mt-6 inline-block text-accent hover:underline"
-            >
+          </Reveal>
+          <Reveal className="mt-6">
+            <MotionLink href="/transparency" className={motionLinkClass("ghost")}>
               جزئیات شفافیت
-            </Link>
+            </MotionLink>
           </Reveal>
         </div>
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-20">
-        <Reveal>
-          <SectionHeading
-            title={`چگونه ${SITE_NAME_EN} کار می‌کند`}
-            subtitle="مسیر ساده از مشارکت تا اثر واقعی."
-          />
-          <ol className="mt-2 grid gap-8 md:grid-cols-3">
-            {[
-              {
-                step: "۱",
-                title: "مشارکت",
-                body: "یک مبلغ کوچک برای یک نیاز مشخص.",
-              },
-              {
-                step: "۲",
-                title: "اقدام",
-                body: "خرید و تحویل وسیله‌های واقعی — با سند و شفافیت.",
-              },
-              {
-                step: "۳",
-                title: "اثر",
-                body: "یک دانش‌آموز حمایت می‌شود؛ یک خوبی ادامه پیدا می‌کند.",
-              },
-            ].map((item, i) => (
-              <li key={item.step} className="relative">
-                <Reveal delay={0.08 * (i + 1)} y={12}>
-                  <p className="text-sm text-accent">{item.step}</p>
-                  <h3 className="mt-2 text-xl font-semibold">{item.title}</h3>
-                  <p className="mt-2 text-muted">{item.body}</p>
-                </Reveal>
-              </li>
-            ))}
-          </ol>
-        </Reveal>
+        <SectionHeading
+          title={`چگونه ${SITE_NAME_EN} کار می‌کند`}
+          subtitle="مسیر ساده از مشارکت تا اثر واقعی."
+        />
+        <HowItWorks />
       </section>
 
       <section className="section-fade-soft py-20">
         <div className="mx-auto max-w-6xl px-4">
-          <Reveal>
-            <SectionHeading
-              title="همراهی با ما"
-              subtitle="اگر می‌خواهید داوطلب شوید یا پیامی بفرستید."
-            />
-            <div className="flex flex-wrap gap-3">
-              <Link
-                href="/volunteer"
-                className="inline-flex h-11 items-center rounded-xl bg-accent px-5 text-accent-foreground"
-              >
-                ثبت همکاری
-              </Link>
-              <Link
-                href="/contact"
-                className="inline-flex h-11 items-center rounded-xl border border-border bg-card px-5"
-              >
-                تماس با ما
-              </Link>
-            </div>
+          <SectionHeading
+            title="همراهی با ما"
+            subtitle="اگر می‌خواهید داوطلب شوید یا پیامی بفرستید."
+          />
+          <Reveal className="flex flex-wrap gap-3">
+            <MotionLink href="/volunteer" className={motionLinkClass("primary")}>
+              ثبت همکاری
+            </MotionLink>
+            <MotionLink href="/contact" className={motionLinkClass("secondary")}>
+              تماس با ما
+            </MotionLink>
           </Reveal>
         </div>
       </section>
@@ -350,12 +304,14 @@ export default async function HomePage() {
             <p className="mt-2 max-w-xl opacity-90">
               از یک کیف و یک مداد تا لبخند یک دانش‌آموز — خوبی‌ها را حفظ کنیم.
             </p>
-            <Link
-              href="/campaigns"
-              className="mt-6 inline-flex h-11 items-center rounded-xl bg-card px-5 text-foreground"
-            >
-              مشارکت در {SITE_EXPRESSION_FA}
-            </Link>
+            <div className="mt-6">
+              <MotionLink
+                href="/campaigns"
+                className="inline-flex h-11 items-center rounded-xl bg-card px-5 text-sm text-foreground"
+              >
+                مشارکت در {SITE_EXPRESSION_FA}
+              </MotionLink>
+            </div>
           </div>
         </Reveal>
       </section>

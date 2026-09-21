@@ -1,3 +1,5 @@
+"use client";
+
 import { Money } from "@/components/Money";
 import { JalaliDate } from "@/components/JalaliDate";
 import type { Expense } from "@prisma/client";
@@ -7,6 +9,7 @@ import {
   LEDGER_TYPE_FA,
 } from "@/lib/admin-labels";
 import type { PublicExpense, PublicReceipt } from "@/server/transparency/queries";
+import { Stagger, FadeItem } from "@/features/home/motion/Reveal";
 
 export function BalanceSummary({
   received,
@@ -18,26 +21,24 @@ export function BalanceSummary({
   remaining: bigint | number;
 }) {
   return (
-    <dl className="grid gap-4 sm:grid-cols-3">
-      <div className="border-s-2 border-accent ps-4">
-        <dt className="text-sm text-muted">دریافتی</dt>
-        <dd className="mt-1 text-xl font-semibold">
-          <Money amount={received} />
-        </dd>
-      </div>
-      <div className="border-s-2 border-border ps-4">
-        <dt className="text-sm text-muted">هزینه‌شده</dt>
-        <dd className="mt-1 text-xl font-semibold">
-          <Money amount={spent} />
-        </dd>
-      </div>
-      <div className="border-s-2 border-gold ps-4">
-        <dt className="text-sm text-muted">مانده</dt>
-        <dd className="mt-1 text-xl font-semibold">
-          <Money amount={remaining} />
-        </dd>
-      </div>
-    </dl>
+    <Stagger className="grid gap-4 sm:grid-cols-3" as="div">
+      {(
+        [
+          { label: "دریافتی", amount: received, accent: "border-accent" },
+          { label: "هزینه‌شده", amount: spent, accent: "border-border" },
+          { label: "مانده", amount: remaining, accent: "border-gold" },
+        ] as const
+      ).map((item) => (
+        <FadeItem key={item.label}>
+          <div className={`border-s-2 ${item.accent} ps-4`}>
+            <p className="text-sm text-muted">{item.label}</p>
+            <p className="mt-1 text-xl font-semibold">
+              <Money amount={item.amount} />
+            </p>
+          </div>
+        </FadeItem>
+      ))}
+    </Stagger>
   );
 }
 

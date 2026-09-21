@@ -1,5 +1,10 @@
+"use client";
+
 import { JalaliDate } from "@/components/JalaliDate";
 import Link from "next/link";
+import { motion, useReducedMotion } from "framer-motion";
+import { Stagger, FadeItem } from "@/features/home/motion/Reveal";
+import { hoverLift } from "@/lib/motion";
 
 export function TestimonialCard({
   authorDisplayName,
@@ -10,6 +15,7 @@ export function TestimonialCard({
   authorRole: string;
   bodyFa: string;
 }) {
+  const reduce = useReducedMotion();
   const roleFa: Record<string, string> = {
     DONOR: "خیر",
     VOLUNTEER: "داوطلب",
@@ -19,7 +25,16 @@ export function TestimonialCard({
   };
 
   return (
-    <blockquote className="border-s-2 border-accent ps-5">
+    <motion.blockquote
+      className="relative border-s-2 border-accent ps-5"
+      whileHover={reduce ? undefined : { y: -2 }}
+    >
+      <span
+        className="pointer-events-none absolute -top-3 end-0 text-5xl font-serif leading-none text-accent/20"
+        aria-hidden
+      >
+        «
+      </span>
       <p className="text-lg leading-relaxed text-foreground/90">«{bodyFa}»</p>
       <footer className="mt-4 text-sm text-muted">
         <cite className="not-italic font-medium text-foreground">
@@ -28,7 +43,7 @@ export function TestimonialCard({
         <span className="mx-2">·</span>
         <span>{roleFa[authorRole] ?? authorRole}</span>
       </footer>
-    </blockquote>
+    </motion.blockquote>
   );
 }
 
@@ -45,9 +60,11 @@ export function ImpactGalleryGrid({
     imageAlt?: string | null;
   }[];
 }) {
+  const reduce = useReducedMotion();
+
   if (!items.length) {
     return (
-      <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <Stagger as="ul" className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {[
           {
             title: "کارهای خوب شما اینجا دیده می‌شود",
@@ -62,8 +79,9 @@ export function ImpactGalleryGrid({
             body: "وقتی اولین بسته برسد، داستانش را با احترام اینجا می‌گذاریم.",
           },
         ].map((card) => (
-          <li
+          <FadeItem
             key={card.title}
+            as="li"
             className="overflow-hidden rounded-2xl border border-border/70 bg-card/80 shadow-[0_16px_40px_-28px_rgba(21,32,28,0.35)]"
           >
             <div
@@ -82,35 +100,39 @@ export function ImpactGalleryGrid({
                 {card.body}
               </p>
             </div>
-          </li>
+          </FadeItem>
         ))}
-      </ul>
+      </Stagger>
     );
   }
 
   return (
-    <ul className="grid gap-8 sm:grid-cols-2">
+    <Stagger as="ul" className="grid gap-8 sm:grid-cols-2">
       {items.map((item) => (
-        <li key={item.id} className="border-b border-border pb-6">
+        <FadeItem key={item.id} as="li" className="overflow-hidden rounded-2xl border border-border/70 bg-card/70 p-0 shadow-[0_16px_40px_-28px_rgba(21,32,28,0.3)]">
           {item.imageUrl ? (
-            <div className="mb-4 aspect-[4/3] overflow-hidden rounded-lg bg-border">
+            <div className="aspect-[4/3] overflow-hidden bg-border">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <motion.img
                 src={item.imageUrl}
                 alt={item.imageAlt ?? item.itemsSummaryFa}
                 loading="lazy"
                 decoding="async"
                 className="h-full w-full object-cover"
+                whileHover={reduce ? undefined : { scale: 1.04 }}
+                transition={{ duration: 0.5 }}
               />
             </div>
           ) : null}
-          <p className="text-sm text-muted">{item.campaignTitle}</p>
-          <h3 className="mt-1 text-lg font-medium">{item.itemsSummaryFa}</h3>
-          <p className="mt-2 text-muted">{item.publicDescriptionFa}</p>
-          <JalaliDate date={item.deliveredAt} className="mt-3 block text-sm text-muted" />
-        </li>
+          <div className="p-5">
+            <p className="text-sm text-muted">{item.campaignTitle}</p>
+            <h3 className="mt-1 text-lg font-medium">{item.itemsSummaryFa}</h3>
+            <p className="mt-2 text-muted">{item.publicDescriptionFa}</p>
+            <JalaliDate date={item.deliveredAt} className="mt-3 block text-sm text-muted" />
+          </div>
+        </FadeItem>
       ))}
-    </ul>
+    </Stagger>
   );
 }
 
@@ -119,9 +141,11 @@ export function VideoTeaser({
 }: {
   videos: { id: string; title: string; href?: string }[];
 }) {
+  const reduce = useReducedMotion();
+
   if (!videos.length) {
     return (
-      <ul className="grid gap-5 sm:grid-cols-2">
+      <Stagger as="ul" className="grid gap-5 sm:grid-cols-2">
         {[
           {
             title: "هنوز ویدیویی نیست",
@@ -132,8 +156,9 @@ export function VideoTeaser({
             body: "بدون پخش خودکار صدا — فقط وقتی محتوای واقعی آماده باشد.",
           },
         ].map((card) => (
-          <li
+          <FadeItem
             key={card.title}
+            as="li"
             className="overflow-hidden rounded-2xl border border-border/70 bg-card/80 shadow-[0_16px_40px_-28px_rgba(21,32,28,0.35)]"
           >
             <div
@@ -153,24 +178,26 @@ export function VideoTeaser({
                 {card.body}
               </p>
             </div>
-          </li>
+          </FadeItem>
         ))}
-      </ul>
+      </Stagger>
     );
   }
 
   return (
-    <ul className="grid gap-4 sm:grid-cols-2">
+    <Stagger as="ul" className="grid gap-4 sm:grid-cols-2">
       {videos.map((v) => (
-        <li key={v.id}>
-          <Link
-            href={v.href ?? "/impact/videos"}
-            className="flex aspect-video items-center justify-center rounded-2xl bg-border/60 text-sm text-muted transition hover:bg-border"
-          >
-            {v.title}
-          </Link>
-        </li>
+        <FadeItem key={v.id} as="li">
+          <motion.div whileHover={reduce ? undefined : hoverLift}>
+            <Link
+              href={v.href ?? "/impact/videos"}
+              className="flex aspect-video items-center justify-center rounded-2xl bg-border/60 text-sm text-muted transition hover:bg-border"
+            >
+              {v.title}
+            </Link>
+          </motion.div>
+        </FadeItem>
       ))}
-    </ul>
+    </Stagger>
   );
 }

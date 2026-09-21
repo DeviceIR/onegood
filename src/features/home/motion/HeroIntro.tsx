@@ -3,29 +3,17 @@
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import { RotatingHeroMessage } from "@/features/home/hero/RotatingHeroMessage";
+import { MotionLink } from "@/components/motion/MotionLink";
+import { duration, ease, fadeUp, motionLinkClass, stagger } from "@/lib/motion";
 import {
   SITE_EXPRESSION_FA,
   SITE_NAME_EN,
   SITE_NAME_FA,
 } from "@/lib/seo";
 
-const ease = [0.22, 1, 0.36, 1] as const;
+const container = stagger;
 
-const container = {
-  hidden: {},
-  show: {
-    transition: { staggerChildren: 0.09, delayChildren: 0.08 },
-  },
-};
-
-const item = {
-  hidden: { opacity: 0, y: 18 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.65, ease },
-  },
-};
+const item = fadeUp;
 
 const letterContainer = {
   hidden: {},
@@ -39,7 +27,7 @@ const letterDrop = {
   show: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.5, ease },
+    transition: { duration: duration.base, ease },
   },
 };
 
@@ -94,13 +82,13 @@ export function HeroIntro() {
         <div className="mt-10 flex flex-wrap gap-3">
           <Link
             href="/campaigns"
-            className="inline-flex h-12 items-center rounded-xl bg-accent px-6 text-accent-foreground shadow-sm"
+            className={`${motionLinkClass("primary")} h-12 px-6`}
           >
             مشارکت در {SITE_EXPRESSION_FA}
           </Link>
           <Link
             href="/impact"
-            className="inline-flex h-12 items-center rounded-xl border border-border/80 bg-card/80 px-6"
+            className={`${motionLinkClass("secondary")} h-12 px-6`}
           >
             مشاهده اثر کمک‌ها
           </Link>
@@ -135,18 +123,18 @@ export function HeroIntro() {
         <RotatingHeroMessage />
       </motion.div>
       <motion.div variants={item} className="mt-10 flex flex-wrap gap-3">
-        <Link
+        <MotionLink
           href="/campaigns"
-          className="inline-flex h-12 items-center rounded-xl bg-accent px-6 text-accent-foreground shadow-sm transition-opacity hover:opacity-90"
+          className={`${motionLinkClass("primary")} h-12 px-6`}
         >
           مشارکت در {SITE_EXPRESSION_FA}
-        </Link>
-        <Link
+        </MotionLink>
+        <MotionLink
           href="/impact"
-          className="inline-flex h-12 items-center rounded-xl border border-border/80 bg-card/80 px-6 backdrop-blur-sm transition-colors hover:border-accent/40"
+          className={`${motionLinkClass("secondary")} h-12 px-6`}
         >
           مشاهده اثر کمک‌ها
-        </Link>
+        </MotionLink>
       </motion.div>
     </motion.div>
   );

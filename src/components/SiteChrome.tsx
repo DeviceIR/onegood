@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import {
   AnimatePresence,
+  LayoutGroup,
   motion,
   useReducedMotion,
 } from "framer-motion";
@@ -14,6 +16,8 @@ import {
   SITE_NAME_FA,
   SITE_TAGLINE_FA,
 } from "@/lib/seo";
+import { duration, ease, motionLinkClass } from "@/lib/motion";
+import { MotionLink } from "@/components/motion/MotionLink";
 
 const links = [
   { href: "/", label: "خانه" },
@@ -31,7 +35,10 @@ const legalLinks = [
   { href: "/terms", label: "شرایط استفاده" },
 ];
 
-const ease = [0.22, 1, 0.36, 1] as const;
+function isActivePath(href: string, pathname: string) {
+  if (href === "/") return pathname === "/";
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
 
 function useScrollChrome() {
   const [scrolled, setScrolled] = useState(false);
@@ -63,13 +70,14 @@ export function SiteHeader() {
   const scrolled = useScrollChrome();
   const reduce = useReducedMotion();
   const solid = scrolled || open;
+  const pathname = usePathname();
 
   return (
     <motion.header
       className="pointer-events-none fixed inset-x-0 top-0 z-40 px-3 pt-3 md:px-4 md:pt-4"
       initial={reduce ? false : { opacity: 0, y: -16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.55, ease }}
+      transition={{ duration: duration.base, ease }}
     >
       <motion.div
         layout
@@ -99,26 +107,44 @@ export function SiteHeader() {
           </Link>
         </motion.div>
 
+        <LayoutGroup>
         <nav
           className="hidden items-center gap-0.5 text-sm md:flex"
           aria-label="اصلی"
         >
-          {links.map((l, i) => (
-            <motion.div
-              key={l.href}
-              initial={reduce ? false : { opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, ease, delay: 0.1 + i * 0.04 }}
-            >
-              <Link
-                href={l.href}
-                className="rounded-xl px-2.5 py-2 text-muted transition-colors hover:bg-surface-soft/80 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          {links.map((l, i) => {
+            const active = isActivePath(l.href, pathname);
+            return (
+              <motion.div
+                key={l.href}
+                className="relative"
+                initial={reduce ? false : { opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, ease, delay: 0.1 + i * 0.04 }}
               >
-                {l.label}
-              </Link>
-            </motion.div>
-          ))}
+                {active ? (
+                  <motion.span
+                    layoutId="nav-active"
+                    className="absolute inset-0 rounded-xl bg-surface-soft/90"
+                    transition={{ duration: duration.fast, ease }}
+                  />
+                ) : null}
+                <Link
+                  href={l.href}
+                  className={[
+                    "relative z-10 block rounded-xl px-2.5 py-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
+                    active
+                      ? "text-foreground"
+                      : "text-muted hover:text-foreground",
+                  ].join(" ")}
+                >
+                  {l.label}
+                </Link>
+              </motion.div>
+            );
+          })}
         </nav>
+        </LayoutGroup>
 
         <div className="flex items-center gap-2">
           <motion.div
@@ -127,12 +153,12 @@ export function SiteHeader() {
             transition={{ duration: 0.45, ease, delay: 0.28 }}
             className="hidden sm:block"
           >
-            <Link
+            <MotionLink
               href="/campaigns"
-              className="inline-flex rounded-xl bg-accent px-4 py-2 text-sm text-accent-foreground shadow-sm transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+              className={`${motionLinkClass("primary")} h-9 px-4`}
             >
               مشارکت در {SITE_EXPRESSION_FA}
-            </Link>
+            </MotionLink>
           </motion.div>
           <button
             type="button"
@@ -165,17 +191,23 @@ export function SiteHeader() {
             transition={{ duration: 0.35, ease }}
           >
             <ul className="flex flex-col gap-1">
-              {links.map((l) => (
-                <li key={l.href}>
-                  <Link
-                    href={l.href}
-                    className="block rounded-xl px-3 py-2.5 text-sm transition-colors hover:bg-surface-soft"
-                    onClick={() => setOpen(false)}
-                  >
-                    {l.label}
-                  </Link>
-                </li>
-              ))}
+              {links.map((l) => {
+                const active = isActivePath(l.href, pathname);
+                return (
+                  <li key={l.href}>
+                    <Link
+                      href={l.href}
+                      className={[
+                        "block rounded-xl px-3 py-2.5 text-sm transition-colors hover:bg-surface-soft",
+                        active ? "bg-surface-soft text-foreground" : "",
+                      ].join(" ")}
+                      onClick={() => setOpen(false)}
+                    >
+                      {l.label}
+                    </Link>
+                  </li>
+                );
+              })}
               <li>
                 <Link
                   href="/campaigns"
@@ -197,12 +229,16 @@ export function SiteFooter() {
   return (
     <footer className="section-fade-soft-top mt-16">
       <div className="mx-auto max-w-4xl px-4 py-12">
-        <p
+        <motion.p
           className="text-center text-lg font-semibold tracking-[0.14em] text-foreground"
           dir="ltr"
+          initial={{ opacity: 0, y: 8 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.4 }}
+          transition={{ duration: duration.base, ease }}
         >
           {SITE_NAME_EN}
-        </p>
+        </motion.p>
 
         <div className="mt-8 flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between sm:gap-12">
           {/* RTL: first column sits on the right */}

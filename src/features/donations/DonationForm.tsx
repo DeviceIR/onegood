@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -35,6 +36,7 @@ export function DonationForm({
     parsedAmount != null
       ? PRESETS.find((p) => p === parsedAmount)?.toString()
       : undefined;
+  const reduce = useReducedMotion();
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -100,22 +102,24 @@ export function DonationForm({
             const key = p.toString();
             const pressed = selectedPreset === key;
             return (
-              <button
+              <motion.button
                 key={key}
                 type="button"
-                className={`rounded-md border bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                className={`rounded-xl border bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
                   pressed
                     ? "border-accent text-accent"
                     : "border-border hover:border-accent"
                 }`}
                 aria-pressed={pressed}
+                whileTap={reduce ? undefined : { scale: 0.97 }}
+                animate={pressed && !reduce ? { scale: 1.03 } : { scale: 1 }}
                 onClick={() => {
                   setAmount(key);
                   setStatus(`مبلغ ${formatToman(p)} انتخاب شد`);
                 }}
               >
                 {formatToman(p)}
-              </button>
+              </motion.button>
             );
           })}
         </div>

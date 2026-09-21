@@ -1,11 +1,14 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import {
   BalanceSummary,
   ExpenseItem,
   LedgerTable,
 } from "@/features/transparency/LedgerViews";
 import { getCampaignTransparency } from "@/server/transparency/queries";
+import { PageHeader } from "@/components/PageHeader";
+import { MotionLink } from "@/components/motion/MotionLink";
+import { motionLinkClass } from "@/lib/motion";
+import { Reveal } from "@/features/home/motion/Reveal";
 
 type Props = { params: Promise<{ campaign: string }> };
 
@@ -34,22 +37,26 @@ export default async function CampaignTransparencyPage({ params }: Props) {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-12">
-      <Link href="/transparency" className="text-sm text-accent">
+      <MotionLink href="/transparency" className={motionLinkClass("ghost")}>
         ← همه شفافیت
-      </Link>
-      <h1 className="mt-2 text-2xl font-semibold">شفافیت — {campaign.titleFa}</h1>
-      <p className="mt-2 text-sm text-muted">
-        مانده و دریافتی دقیقاً از جمع ردیف‌های دفترکل همین کمپین است.
-      </p>
-      <div className="mt-8">
+      </MotionLink>
+      <PageHeader
+        title={`شفافیت — ${campaign.titleFa}`}
+        subtitle="مانده و دریافتی دقیقاً از جمع ردیف‌های دفترکل همین کمپین است."
+      />
+      <div className="mt-2">
         <BalanceSummary {...balances} />
       </div>
       <div className="mt-10">
-        <h2 className="mb-4 text-lg font-semibold">دفترکل کمپین</h2>
+        <Reveal>
+          <h2 className="mb-4 text-lg font-semibold">دفترکل کمپین</h2>
+        </Reveal>
         <LedgerTable rows={entries} />
       </div>
       <div className="mt-10">
-        <h2 className="mb-4 text-lg font-semibold">هزینه‌ها و رسیدها</h2>
+        <Reveal>
+          <h2 className="mb-4 text-lg font-semibold">هزینه‌ها و رسیدها</h2>
+        </Reveal>
         {expenses.length === 0 ? (
           <p className="text-sm text-muted">هزینه منتشرشده‌ای نیست.</p>
         ) : (

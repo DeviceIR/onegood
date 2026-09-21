@@ -4,6 +4,7 @@ import { prisma } from "@/server/db/prisma";
 import { DonationForm } from "@/features/donations/DonationForm";
 import { DonateActionJsonLd } from "@/components/JsonLd";
 import { absoluteUrl, buildPageMetadata } from "@/lib/seo";
+import { PageHeader } from "@/components/PageHeader";
 
 type Props = { params: Promise<{ campaign: string }> };
 
@@ -44,8 +45,7 @@ export default async function DonatePage({ params }: Props) {
         url={absoluteUrl(`/donate/${c.slug}`)}
         description={c.summaryFa}
       />
-      <h1 className="text-2xl font-semibold">مشارکت در {c.titleFa}</h1>
-      <p className="mt-2 text-sm text-muted">{c.summaryFa}</p>
+      <PageHeader title={`مشارکت در ${c.titleFa}`} subtitle={c.summaryFa} />
       <div className="mt-8">
         <DonationForm campaignId={c.id} campaignSlug={c.slug} />
       </div>

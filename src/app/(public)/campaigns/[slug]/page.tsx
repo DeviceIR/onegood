@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import { Money } from "@/components/Money";
 import { CampaignProgress } from "@/features/campaigns/CampaignProgress";
 import {
@@ -13,6 +12,10 @@ import { getPublishedCampaignBySlug } from "@/server/campaigns/queries";
 import type { Metadata } from "next";
 import { DonateActionJsonLd } from "@/components/JsonLd";
 import { absoluteUrl, buildPageMetadata } from "@/lib/seo";
+import { PageHeader } from "@/components/PageHeader";
+import { MotionLink } from "@/components/motion/MotionLink";
+import { motionLinkClass } from "@/lib/motion";
+import { Reveal } from "@/features/home/motion/Reveal";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -52,11 +55,9 @@ export default async function CampaignDetailPage({ params }: Props) {
         url={absoluteUrl(`/donate/${campaign.slug}`)}
         description={campaign.summaryFa}
       />
-      <p className="text-sm text-muted">کمپین</p>
-      <h1 className="mt-2 text-3xl font-bold md:text-4xl">{campaign.titleFa}</h1>
-      <p className="mt-4 text-lg text-muted">{campaign.summaryFa}</p>
+      <PageHeader kicker="کمپین" title={campaign.titleFa} subtitle={campaign.summaryFa} />
 
-      <div className="mt-8 rounded-xl border border-border bg-card p-6">
+      <Reveal className="mt-8 rounded-2xl border border-border bg-card p-6">
         <div className="flex justify-between text-sm">
           <Money amount={collected} />
           <span className="text-muted">
@@ -71,48 +72,61 @@ export default async function CampaignDetailPage({ params }: Props) {
             مهلت: <JalaliDate date={campaign.deadline} />
           </p>
         ) : null}
-        <Link
-          href={`/donate/${campaign.slug}`}
-          className="mt-6 inline-flex h-12 w-full items-center justify-center rounded-md bg-accent text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
-        >
-          مشارکت در این خوبی
-        </Link>
-      </div>
+        <div className="mt-6">
+          <MotionLink
+            href={`/donate/${campaign.slug}`}
+            full
+            className={`${motionLinkClass("primary")} h-12 w-full`}
+          >
+            مشارکت در این خوبی
+          </MotionLink>
+        </div>
+      </Reveal>
 
       <section className="mt-10 whitespace-pre-line leading-relaxed">
-        <h2 className="text-xl font-semibold">داستان</h2>
+        <Reveal>
+          <h2 className="text-xl font-semibold">داستان</h2>
+        </Reveal>
         <p className="mt-3 text-foreground/90">{campaign.storyFa}</p>
       </section>
 
       {campaign.needs.length > 0 ? (
         <section className="mt-10">
-          <h2 className="mb-4 text-xl font-semibold">اقلام مورد نیاز</h2>
+          <Reveal>
+            <h2 className="mb-4 text-xl font-semibold">اقلام مورد نیاز</h2>
+          </Reveal>
           <CampaignNeedsList needs={campaign.needs} />
         </section>
       ) : null}
 
       {campaign.updates.length > 0 ? (
         <section className="mt-10">
-          <h2 className="mb-4 text-xl font-semibold">به‌روزرسانی‌ها</h2>
+          <Reveal>
+            <h2 className="mb-4 text-xl font-semibold">به‌روزرسانی‌ها</h2>
+          </Reveal>
           <CampaignUpdateTimeline updates={campaign.updates} />
         </section>
       ) : null}
 
       {campaign.expenses.length > 0 ? (
         <section className="mt-10">
-          <h2 className="mb-4 text-xl font-semibold">هزینه‌ها</h2>
+          <Reveal>
+            <h2 className="mb-4 text-xl font-semibold">هزینه‌ها</h2>
+          </Reveal>
           <CampaignExpenseSummary expenses={campaign.expenses} />
-          <Link
+          <MotionLink
             href={`/transparency/${campaign.slug}`}
-            className="mt-4 inline-block text-sm text-accent"
+            className={`${motionLinkClass("ghost")} mt-4`}
           >
             شفافیت این کمپین
-          </Link>
+          </MotionLink>
         </section>
       ) : null}
 
       <section className="mt-10">
-        <h2 className="mb-4 text-xl font-semibold">مشارکت‌کنندگان</h2>
+        <Reveal>
+          <h2 className="mb-4 text-xl font-semibold">مشارکت‌کنندگان</h2>
+        </Reveal>
         <DonationActivityFeed donations={campaign.donations} />
       </section>
     </article>

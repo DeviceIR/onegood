@@ -1,8 +1,9 @@
-import Link from "next/link";
 import {
   DonationReference,
   PaymentStatusBanner,
 } from "@/features/donations/PaymentStatus";
+import { MotionLink } from "@/components/motion/MotionLink";
+import { motionLinkClass } from "@/lib/motion";
 
 export default async function DonationSuccessPage({
   searchParams,
@@ -19,10 +20,12 @@ export default async function DonationSuccessPage({
         </div>
       ) : null}
       <div className="mt-8 flex justify-center gap-4 text-foreground">
-        <Link href="/campaigns" className="text-accent">
+        <MotionLink href="/campaigns" className={motionLinkClass("ghost")}>
           کمک‌های دیگر
-        </Link>
-        <Link href="/donation/track">پیگیری</Link>
+        </MotionLink>
+        <MotionLink href="/donation/track" className={motionLinkClass("ghost")}>
+          پیگیری
+        </MotionLink>
       </div>
     </PaymentStatusBanner>
   );

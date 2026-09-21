@@ -1,5 +1,6 @@
 import { CampaignCard } from "@/features/campaigns/CampaignCard";
-import { SectionHeading } from "@/components/SectionHeading";
+import { PageHeader } from "@/components/PageHeader";
+import { Stagger } from "@/features/home/motion/Reveal";
 import { getPublishedCampaigns } from "@/server/campaigns/queries";
 import { buildPageMetadata } from "@/lib/seo";
 
@@ -19,14 +20,18 @@ export default async function CampaignsPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12">
-      <SectionHeading
+      <PageHeader
         title="کمک‌های جاری و گذشته"
         subtitle="نیازها مشخص‌اند؛ پیشرفت و هزینه‌ها شفاف‌اند."
       />
       {campaigns.length === 0 ? (
         <p className="text-muted">کمپینی منتشر نشده است.</p>
       ) : (
-        campaigns.map((c) => <CampaignCard key={c.id} campaign={c} />)
+        <Stagger className="grid gap-4">
+          {campaigns.map((c) => (
+            <CampaignCard key={c.id} campaign={c} />
+          ))}
+        </Stagger>
       )}
     </div>
   );

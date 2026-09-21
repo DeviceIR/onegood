@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { SectionHeading } from "@/components/SectionHeading";
 import {
   BalanceSummary,
@@ -7,6 +6,9 @@ import {
 } from "@/features/transparency/LedgerViews";
 import { getTransparencyOverview } from "@/server/transparency/queries";
 import { buildPageMetadata } from "@/lib/seo";
+import { Stagger, FadeItem, Reveal } from "@/features/home/motion/Reveal";
+import { MotionLink } from "@/components/motion/MotionLink";
+import { motionLinkClass } from "@/lib/motion";
 
 export const metadata = buildPageMetadata({
   title: "شفافیت مالی",
@@ -35,11 +37,15 @@ export default async function TransparencyPage() {
       />
       <BalanceSummary {...balances} />
       <div className="mt-10">
-        <h2 className="mb-4 text-lg font-semibold">آخرین ردیف‌های دفترکل</h2>
+        <Reveal>
+          <h2 className="mb-4 text-lg font-semibold">آخرین ردیف‌های دفترکل</h2>
+        </Reveal>
         <LedgerTable rows={entries} />
       </div>
       <div className="mt-10">
-        <h2 className="mb-4 text-lg font-semibold">هزینه‌های منتشرشده</h2>
+        <Reveal>
+          <h2 className="mb-4 text-lg font-semibold">هزینه‌های منتشرشده</h2>
+        </Reveal>
         {expenses.length === 0 ? (
           <p className="text-sm text-muted">هنوز هزینه‌ای منتشر نشده.</p>
         ) : (
@@ -52,16 +58,21 @@ export default async function TransparencyPage() {
       </div>
       {campaigns.length > 0 ? (
         <div className="mt-10">
-          <h2 className="mb-4 text-lg font-semibold">شفافیت به تفکیک کمپین</h2>
-          <ul className="space-y-2">
+          <Reveal>
+            <h2 className="mb-4 text-lg font-semibold">شفافیت به تفکیک کمپین</h2>
+          </Reveal>
+          <Stagger as="ul" className="space-y-2">
             {campaigns.map((c) => (
-              <li key={c.slug}>
-                <Link href={`/transparency/${c.slug}`} className="text-accent">
+              <FadeItem key={c.slug} as="li">
+                <MotionLink
+                  href={`/transparency/${c.slug}`}
+                  className={motionLinkClass("ghost")}
+                >
                   {c.titleFa}
-                </Link>
-              </li>
+                </MotionLink>
+              </FadeItem>
             ))}
-          </ul>
+          </Stagger>
         </div>
       ) : null}
     </div>
